@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "firstname": "Leonardo",
+            "lastname": "Garcia",
+            "userid": "6523150011",
+            "password": "12345",
+            "birthday": "2005-06-09"
+        },
+        {
+            "id": 2,
+            "firstname": "Jose",
+            "lastname": "nose",
+            "userid": "6523150023",
+            "password": "12345",
+            "birthday": "2005-06-09"
+        },
+        {
+            "id": 3,
+            "firstname": "Pedro",
+            "lastname": "Picapiedra",
+            "userid": "6523150033",
+            "password": "12345",
+            "birthday": "2005-06-09"
+        }
+    ]
+}

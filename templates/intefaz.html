@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Usuarios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="users-page">
+    <div class="container">
+        <header class="users-header">
+            <h1><i class="fas fa-users"></i> Lista de Usuarios</h1>
+            <p>Usuarios registrados en el sistema</p>
+        </header>
+        
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Usuario</th>
+                        <th>Fecha Nac.</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr class="loading-row">
+                        <td colspan="5">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando usuarios...
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-footer">
+            <div class="user-count">Total: <span id="user-count">0</span> usuarios</div>
+            <a href="{{ url_for('index') }}" class="btn">
+                <i class="fas fa-plus"></i> Agregar Usuario
+            </a>
+        </div>
+    </div>
+    
+    <script>
+    // Cargar usuarios cuando el documento esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUsers();
+        
+        // Escuchar el evento de actualización de usuarios
+        document.addEventListener('userUpdated', function() {
+            loadUsers();
+        });
+    });
+    
+    // Función para cargar los usuarios
+    async function loadUsers() {
+        const tbody = document.getElementById('users-table-body');
+        const userCountEl = document.getElementById('user-count');
+        
+        try {
+            // Obtener usuarios
+            const response = await fetch('/users');
+            if (!response.ok) throw new Error('Error al cargar los usuarios');
+            
+            const data = await response.json();
+            const users = data.users || [];
+            
+            // Actualizar contador
+            if (userCountEl) {
+                userCountEl.textContent = users.length;
+            }
+            
+            // Mostrar mensaje si no hay usuarios
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <p>No hay usuarios registrados</p>
+                        </td>
+                    </tr>`;
+                return;
+            }
+            
+            // Generar filas de la tabla
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${escapeHtml(user.firstname || '')}</td>
+                    <td>${escapeHtml(user.lastname || '')}</td>
+                    <td>${escapeHtml(user.userid || '')}</td>
+                    <td>${formatDate(user.birthday)}</td>
+                </tr>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Error al cargar usuarios:', error);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Error al cargar los usuarios. Intente recargar la página.
+                    </td>
+                </tr>`;
+        }
+    }
+    
+    // Función para formatear la fecha
+    function formatDate(dateString) {
+        if (!dateString) return 'No especificada';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
+    
+    // Función para escapar HTML (prevenir XSS)
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return '';
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    </script>
+</body>
+</html>
