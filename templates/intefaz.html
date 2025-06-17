@@ -24,11 +24,12 @@
                         <th>Apellido</th>
                         <th>Usuario</th>
                         <th>Fecha Nac.</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body">
                     <tr class="loading-row">
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="loading-spinner">
                                 <i class="fas fa-spinner fa-spin"></i> Cargando usuarios...
                             </div>
@@ -89,12 +90,17 @@
             
             // Generar filas de la tabla
             tbody.innerHTML = users.map(user => `
-                <tr>
+                <tr data-user-id="${user.id}">
                     <td>${user.id}</td>
                     <td>${escapeHtml(user.firstname || '')}</td>
                     <td>${escapeHtml(user.lastname || '')}</td>
                     <td>${escapeHtml(user.userid || '')}</td>
                     <td>${formatDate(user.birthday)}</td>
+                    <td class="actions">
+                        <button class="btn-delete" onclick="deleteUser(${user.id}, this)" title="Eliminar usuario">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
             
@@ -128,6 +134,61 @@
         }
     }
     
+    // Función para eliminar un usuario
+    async function deleteUser(userId, button) {
+        if (!confirm('¿Está seguro de que desea eliminar este usuario?')) {
+            return;
+        }
+
+        const row = button.closest('tr');
+        row.style.opacity = '0.5';
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const response = await fetch(`/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al eliminar el usuario');
+            }
+
+            // Animar la eliminación
+            row.style.transition = 'all 0.3s ease';
+            row.style.height = row.offsetHeight + 'px';
+            row.style.margin = '0';
+            row.style.padding = '0';
+            row.style.border = 'none';
+            row.offsetHeight; // Forzar reflow
+            row.style.opacity = '0';
+            row.style.height = '0';
+            
+            // Eliminar la fila después de la animación
+            setTimeout(() => {
+                row.remove();
+                // Actualizar el contador
+                const userCountEl = document.getElementById('user-count');
+                if (userCountEl) {
+                    const currentCount = parseInt(userCountEl.textContent) || 0;
+                    userCountEl.textContent = Math.max(0, currentCount - 1);
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+            alert(error.message || 'Error al eliminar el usuario');
+            row.style.opacity = '1';
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-trash"></i>';
+        }
+    }
+
     // Función para escapar HTML (prevenir XSS)
     function escapeHtml(unsafe) {
         if (typeof unsafe !== 'string') return '';

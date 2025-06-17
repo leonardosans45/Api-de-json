@@ -81,6 +81,28 @@ def add_user():
 
   
 
+@app.route('/users/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    try:
+        data = validate_data()
+        if not isinstance(data, dict) or 'users' not in data:
+            return jsonify({'error': 'No users found'}), 404
+            
+        initial_length = len(data['users'])
+        data['users'] = [user for user in data['users'] if user.get('id') != id]
+        
+        if len(data['users']) == initial_length:
+            return jsonify({'error': 'User not found'}), 404
+            
+        # Save the updated data
+        with open(DATA_FILE, 'w') as f:
+            json.dump(data, f, indent=4)
+            
+        return jsonify({'message': 'User deleted successfully'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True) #debug=True para que se actualice automaticamente
 

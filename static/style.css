@@ -508,6 +508,60 @@ input:focus, button:focus {
     color: var(--text-light);
 }
 
+/* Delete button styles */
+.btn-delete {
+    background: transparent;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-delete:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+.btn-delete:active {
+    transform: scale(0.95);
+}
+
+.btn-delete:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Actions column */
+.actions {
+    text-align: center;
+    width: 80px;
+}
+
+/* Animation for row removal */
+@keyframes fadeOutSlide {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.users-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.users-table tbody tr.deleting {
+    animation: fadeOutSlide 0.3s forwards;
+}
+
 .empty-state i {
     font-size: 3rem;
     margin-bottom: 15px;
